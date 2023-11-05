@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location app</title>
+  <style>
+  html {
+    box-sizing: border-box;
+    font-size: 100%;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+    color: #ffffff;
+  }
+  
+  h1 {
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    font-size: 2rem;
+    padding: 0 3rem;
+  }
+  
+  #map {
+    height: 75vh;
+  }
+  
+  .gm-style-iw-d {
+    color: #000000;
+  }
+  </style>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> 
+ <!-- <link rel="stylesheet" href="style.css"> -->
+  
+</head>
+<body>
+    
+  <script>
+    
+let map = undefined;
+let marker = undefined;
+let geofenceCircle = undefined;
+
+let geofencePolygon = undefined;
+
+function initMap(lat, lon) {
+  lat = parseFloat(lat);
+  lon = parseFloat(lon);
+ // if (lat !== 0 && lon !== 0) 
+ if (!isNaN(lat) && isFinite(lat) && !isNaN(lon) && isFinite(lon)){
+  if(!map){
+    map = new google.maps.Map(document.getElementById('map'), {
+      
+      center: {
+        lat: lat,
+        lng: lon,
+      },
+      zoom: 14,
+      mapId: 'db128082af4f91e',
+      mapTypeControl: false,
+      fullscreenControl: false,
+      streetViewControl: false,
+      
+    });
+    // Recalibratează harta pe noile coordonate
+    map.setCenter({
+      lat: lat,
+      lng: lon
+    }); 
+    
+  }
+  if(!marker){
+    marker = new google.maps.Marker({
+    map,
+    draggable: false,
+    animation: google.maps.Animation.BOUNCE,
+    position: { lat: lat, lng: lon },
+  });
+}
+else{
+  marker.position = { lat: lat, lng: lon };
+}
+  
+  
+  function toggleBounce() {
+    if (marker.getAnimation() !== null) {
+      marker.setAnimation(null);
+    } else {
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+    }
+  }
+  marker.addListener("click", toggleBounce);
+  
+  
+  } 
+}
+function createGeofence(latitude, longitude) {
+  // coordonatele centrale ale geofence-ului
+  var center = new google.maps.LatLng(latitude, longitude);
+
+  // opțiunile pentru cercul geofence-ului
+  var circleOptions = {
+    center: center,
+    radius: 1000, // în metri
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35
+  };
+
+  // Creați cercul geofence-ului utilizând opțiunile specificate
+  if(!geofenceCircle){
+   geofenceCircle = new google.maps.Circle(circleOptions);
+
+  // Adăugați cercul geofence-ului pe hartă
+  geofenceCircle.setMap(map);
+  }
+  else{ 
+    geofenceCircle.setMap(map);
+    
+  }
+}
+
+setInterval(() => {
+  fetch("/")
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error("Network response was not OK.");
+    }
+  })
+  .then(responseData => {
+    const lat = Number(responseData.data.lat);
+    const lng = Number(responseData.data.lon);
+    initMap(lat,lng);
+    
+   // console.log(responseData);
+    // Utilizați datele primite în frontend
+    // Exemplu: afișați rezultatul în consolă
+    console.log(responseData.data.lat);
+    console.log(responseData.data.lon);
+    createGeofence(responseData.data.lat-0.009, responseData.data.lon-0.009);
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  })
+}  ,2000)
+  
+
+  
+/*
+fetch("/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    lat: "example_latitude",
+    lon: "example_longitude"
+  })
+})
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error("Network response was not OK.");
+    }
+  })
+  .then(responseData => {
+    console.log(responseData);
+    // Utilizați datele primite în frontend
+    // Exemplu: afișați latitudinea și longitudinea
+    console.log(responseData.latitudine);
+    console.log(responseData.longitutidne);
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  });
+*/
+	// Name
+	// Latitude, Longitude
+	// Image URL
+	// scaledSize width, height
+
+  </script>
+  
+  <h1>To be continued</h1>
+
+  <div id="map"></div>
+
+ <!-- <script src="/pages/script.js"></script>-->
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJJPaGctG7iEaT0rtiFt6S6kMKE334wvM&map_ids=db128082af4f91e&callback=initMap">
+
+</script>
+</body>
+</html>
